@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Cipher Bureau</title>
+    <!--
+      Digital Cipher Bureau
+      Developer Documentation:
+      This is a self-contained HTML file serving as an educational cryptography tool.
+      - HTML structure provides a terminal-like interface and a canvas for graphing.
+      - CSS styling creates a dark "cyber intelligence" aesthetic with high contrast for accessibility.
+      - JavaScript logic handles text-to-number substitution (A=1...Z=26), mathematical transformations,
+        canvas rendering for graphing the algebraic rules, and simulated terminal output typing.
+      
+      Setup Instructions:
+      1. Distribute this single HTML file to any local machine.
+      2. Double-click the file to open it in any modern browser (Chrome, Edge, Firefox, Safari).
+      3. No internet connection, server, or database is required after loading.
+    -->
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: #0a0e0a;
+            --primary-color: #00ff41;
+            --secondary-color: #008f11;
+            --alert-color: #ff3333;
+            --font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 20px;
+            font-size: 18px;
+            /* High legibility for projectors */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px var(--primary-color);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            justify-content: center;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+            flex: 1 1 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            background-color: #000;
+            color: var(--primary-color);
+            border: 1px solid var(--secondary-color);
+            padding: 10px;
+            font-family: var(--font-family);
+            font-size: 1.2rem;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input::placeholder {
+            color: var(--secondary-color);
+            opacity: 0.7;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px var(--primary-color);
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-family: var(--font-family);
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-color);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 255, 65, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .terminal-viewport {
+            background-color: #000;
+            border: 1px solid var(--secondary-color);
+            border-radius: 4px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        .terminal-line {
+            margin-bottom: 8px;
+        }
+
+        .terminal-sys {
+            color: #88ff88;
+        }
+
+        .terminal-err {
+            color: var(--alert-color);
+        }
+
+        .terminal-in {
+            color: #ffffaa;
+        }
+
+        .terminal-out {
+            color: #55ffff;
+            font-weight: bold;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            border: 1px solid var(--secondary-color);
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mission Status CSS */
+        .mission-status-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+            box-sizing: border-box;
+        }
+
+        .stage-active {
+            color: var(--primary-color);
+            text-shadow: 0 0 8px var(--primary-color);
+        }
+
+        .stage-locked {
+            color: var(--alert-color);
+            opacity: 0.6;
+        }
+
+        .stage-complete {
+            color: #55ffff;
+            text-shadow: 0 0 8px #55ffff;
+        }
+
+        /* Accessibility: custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        .mode-indicator {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .encode-mode {
+            color: #55ffff;
+            border-color: #55ffff;
+        }
+
+        .decode-mode {
+            color: #ffaa00;
+            border-color: #ffaa00;
+        }
+
+        .terminal-gold {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+        }
+
+        .terminal-banner {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .vault-output {
+            text-align: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .vault-output .terminal-banner {
+            margin-bottom: 5px;
+        }
+
+        .vault-output .terminal-gold {
+            margin: 25px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div
+        style="position: absolute; top: 20px; right: 20px; color: var(--secondary-color); font-size: 0.9rem; font-family: var(--font-family);">
+        MNHS (Mu Alpha Theta)</div>
+    <h1>Digital Cipher Bureau</h1>
+
+    <div class="container">
+        <!-- Mission Status Panel -->
+        <div class="mission-status-container" id="mission-status-panel">
+            <div id="status-stage1" class="stage-active">Stage 1: ACTIVE</div>
+            <div id="status-stage2" class="stage-locked">Stage 2: LOCKED</div>
+            <div id="status-stage3" class="stage-locked">Stage 3: LOCKED</div>
+            <div id="mission-timer" style="color: var(--primary-color);">15:00</div>
+        </div>
+
+        <!-- Control & Terminal Panel -->
+        <div class="panel">
+            <div id="mode-header" class="mode-indicator encode-mode">SYSTEM MODE: ENCODE</div>
+
+            <div class="controls-row">
+                <button type="button" id="btn-toggle-mode" class="btn-outline">Switch to Decode Mode</button>
+                <button type="button" id="btn-reset" class="btn-outline">Reset Mission</button>
+            </div>
+
+            <form id="cipher-form">
+                <div class="controls-row">
+                    <label for="rule-select">Algorithm:</label>
+                    <select id="rule-select">
+                        <option value="add">y = x + k</option>
+                        <option value="sub">y = x - k</option>
+                        <option value="mul2">y = 2x</option>
+                        <option value="mul2add1">y = 2x + 1</option>
+                    </select>
+
+                    <div id="k-container" class="controls-row">
+                        <label for="k-input">k = </label>
+                        <input type="number" id="k-input" value="3" step="1" style="width: 80px;">
+                    </div>
+                </div>
+
+                <div class="controls-row" style="flex-direction: column; align-items: stretch;">
+                    <label id="input-label" for="message-input">Enter Message (Letters A-Z only):</label>
+                    <input type="text" id="message-input" autocomplete="off" placeholder="e.g. SECRETMESSAGE">
+                </div>
+
+                <button type="submit" id="btn-submit" style="width: 100%;">Execute Command >_</button>
+            </form>
+
+            <div class="terminal-viewport" id="terminal">
+            </div>
+
+            <form id="stage-answer-form" class="hidden"
+                style="margin-top: 5px; border-top: 1px dashed var(--secondary-color); padding-top: 15px;">
+                <div class="controls-row">
+                    <label id="stage-answer-label" for="stage-answer-input">Enter Answer:</label>
+                    <input type="number" id="stage-answer-input" autocomplete="off" style="width: 120px;">
+                    <button type="submit" id="btn-stage-submit" class="btn-outline">Submit Code >_</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Graph Panel -->
+        <div class="panel">
+            <h2 style="margin-top:0; font-size:1.5rem; text-align:center; text-shadow: 0 0 5px var(--primary-color);">
+                Transformation Visualization</h2>
+            <div class="canvas-container">
+                <canvas id="graph-canvas" width="600" height="400"></canvas>
+            </div>
+            <p style="text-align:center; color: var(--secondary-color); font-size: 1rem;">
+                X-axis: Original Value (1-26) | Y-axis: Transformed Value
+            </p>
+            <div id="stage2-table-container" class="hidden" style="margin-top: 20px;">
+                <table
+                    style="width: 100%; border-collapse: collapse; text-align: center; color: var(--primary-color); font-family: var(--font-family); background-color: var(--panel-bg);">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid var(--primary-color); padding: 8px;">INPUT</th>
+                            <th style="border: 1px solid var(--primary-color); padding: 8px;">OUTPUT</th>
+                            <th style="border: 1px solid var(--primary-color); padding: 8px;">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">2</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">7</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;"><button type="button"
+                                    class="btn-outline btn-plot" data-x="2" data-y="7"
+                                    style="padding: 4px 8px; font-size: 1rem;">Plot</button></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">4</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">11</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;"><button type="button"
+                                    class="btn-outline btn-plot" data-x="4" data-y="11"
+                                    style="padding: 4px 8px; font-size: 1rem;">Plot</button></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">6</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;">15</td>
+                            <td style="border: 1px solid var(--primary-color); padding: 8px;"><button type="button"
+                                    class="btn-outline btn-plot" data-x="6" data-y="15"
+                                    style="padding: 4px 8px; font-size: 1rem;">Plot</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**************************************************************
+         * DIGITAL CIPHER BUREAU - CORE LOGIC
+         **************************************************************/
+
+        // State variables
+        let currentMode = 'encode'; // 'encode' | 'decode'
+        let currentRule = 'add'; // 'add' | 'sub' | 'mul2' | 'mul2add1'
+        let currentK = 3;
+        let currentStage = 1;
+
+        let pendingPoints = [];
+        let animationFrameId = null;
+        let stage2PlottedPoints = [];
+        let isStage2LineDrawn = false;
+
+        let timeLeft = 15 * 60;
+        let timerInterval = null;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            const timerEl = document.getElementById('mission-timer');
+            if (timerEl) timerEl.textContent = `${m}:${s}`;
+        }
+
+        function startTimer() {
+            timeLeft = 15 * 60;
+            updateTimerDisplay();
+            const timerEl = document.getElementById('mission-timer');
+            if (timerEl) timerEl.style.color = 'var(--primary-color)';
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft === 0) {
+                        printToTerminal('MISSION TIME EXPIRED', 'terminal-err', 0);
+                        if (timerEl) timerEl.style.color = 'var(--alert-color)';
+                    }
+                }
+            }, 1000);
+        }
+
+        // UI Elements
+        const form = document.getElementById('cipher-form');
+        const modeHeader = document.getElementById('mode-header');
+        const btnToggleMode = document.getElementById('btn-toggle-mode');
+        const btnReset = document.getElementById('btn-reset');
+        const ruleSelect = document.getElementById('rule-select');
+        const kContainer = document.getElementById('k-container');
+        const kInput = document.getElementById('k-input');
+        const inputLabel = document.getElementById('input-label');
+        const messageInput = document.getElementById('message-input');
+        const btnSubmit = document.getElementById('btn-submit');
+        const terminal = document.getElementById('terminal');
+        const canvas = document.getElementById('graph-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Cryptography Engine Functions
+        function charToNum(char) {
+            const code = char.toUpperCase().charCodeAt(0);
+            if (code >= 65 && code <= 90) {
+                return code - 64; // A=1, B=2...
+            }
+            return null;
+        }
+
+        function numToChar(num) {
+            if (num >= 1 && num <= 26 && Number.isInteger(num)) {
+                return String.fromCharCode(num + 64);
+            }
+            return null;
+        }
+
+        function applyRule(x, rule, k) {
+            switch (rule) {
+                case 'add': return x + k;
+                case 'sub': return x - k;
+                case 'mul2': return 2 * x;
+                case 'mul2add1': return 2 * x + 1;
+                default: return x;
+            }
+        }
+
+        function applyInverseRule(y, rule, k) {
+            switch (rule) {
+                case 'add': return y - k;
+                case 'sub': return y + k;
+                case 'mul2': return y / 2;
+                case 'mul2add1': return (y - 1) / 2;
+                default: return y;
+            }
+        }
+
+        // Terminal Typewriter Effect
+        async function printToTerminal(text, className = '', delay = 10, parentElement = terminal) {
+            const line = document.createElement('div');
+            line.className = `terminal-line ${className}`;
+            parentElement.appendChild(line);
+
+            // Allow extremely fast output to prevent blocking UI while still animating
+            for (let i = 0; i < text.length; i++) {
+                line.innerHTML += text.charAt(i);
+                if (delay > 0) {
+                    await new Promise(r => setTimeout(r, delay));
+                }
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        }
+
+        function clearTerminal() {
+            terminal.innerHTML = '';
+            if (currentStage === 1) {
+                printStage1Message();
+            } else if (currentStage === 2) {
+                printStage2Message();
+            } else if (currentStage === 3) {
+                printStage3Message();
+            } else {
+                printVaultMessage();
+            }
+        }
+
+        async function printStage1Message() {
+            await printToTerminal('INTERCEPTED TRANSMISSION', 'terminal-sys', 10);
+            await printToTerminal('Cipher Numbers: 16 4 23 11', 'terminal-sys', 10);
+            await printToTerminal('Key: +3', 'terminal-sys', 10);
+            await printToTerminal('Recover the original message.', 'terminal-sys', 10);
+        }
+
+        async function printStage2Message() {
+            await printToTerminal('SYSTEM RULE DETECTED', 'terminal-sys', 10);
+            await printToTerminal('Analyze the data table shown in the visualization panel to determine the rule.', 'terminal-sys', 10);
+            await printToTerminal('Encoded value = 23', 'terminal-sys', 10);
+            await printToTerminal('Find the original input value.', 'terminal-sys', 10);
+        }
+
+        async function printStage3Message() {
+            await printToTerminal('DATA REPORT: LAB SAMPLE', 'terminal-sys', 10);
+            await printToTerminal('Hour 1: 5', 'terminal-sys', 10);
+            await printToTerminal('Hour 2: 10', 'terminal-sys', 10);
+            await printToTerminal('Hour 3: 20', 'terminal-sys', 10);
+            await printToTerminal('Hour 4: 40', 'terminal-sys', 10);
+            await printToTerminal('Hour 5: 80', 'terminal-sys', 10);
+            await printToTerminal('Hour 6: ?', 'terminal-sys', 10);
+            await printToTerminal('Analyze the pattern in the growth data and determine the value at Hour 6.', 'terminal-sys', 10);
+        }
+
+        async function printVaultMessage() {
+            const vaultBlock = document.createElement('div');
+            vaultBlock.className = 'vault-output';
+            terminal.appendChild(vaultBlock);
+
+            await printToTerminal('============================', 'terminal-banner', 10, vaultBlock);
+            await printToTerminal('VAULT UNLOCKED', 'terminal-banner', 10, vaultBlock);
+            await printToTerminal('============================', 'terminal-banner', 10, vaultBlock);
+            await printToTerminal('ACCESS CODE: 4 - 0 - 8', 'terminal-gold', 10, vaultBlock);
+            await printToTerminal('ENTER THIS CODE INTO THE SECURITY LOCKBOX', 'terminal-sys', 10, vaultBlock);
+        }
+
+        function updateMissionUI() {
+            const s1 = document.getElementById('status-stage1');
+            const s2 = document.getElementById('status-stage2');
+            const s3 = document.getElementById('status-stage3');
+            if (!s1) return;
+
+            s1.className = currentStage === 1 ? 'stage-active' : 'stage-complete';
+            s1.textContent = currentStage === 1 ? 'Stage 1: ACTIVE' : 'Stage 1: COMPLETE';
+
+            if (currentStage === 1) {
+                s2.className = 'stage-locked'; s2.textContent = 'Stage 2: LOCKED';
+                s3.className = 'stage-locked'; s3.textContent = 'Stage 3: LOCKED';
+            } else if (currentStage === 2) {
+                s2.className = 'stage-active'; s2.textContent = 'Stage 2: ACTIVE';
+                s3.className = 'stage-locked'; s3.textContent = 'Stage 3: LOCKED';
+            } else if (currentStage === 3) {
+                s2.className = 'stage-complete'; s2.textContent = 'Stage 2: COMPLETE';
+                s3.className = 'stage-active'; s3.textContent = 'Stage 3: ACTIVE';
+            } else {
+                s1.className = 'stage-complete'; s1.textContent = 'Stage 1: COMPLETE';
+                s2.className = 'stage-complete'; s2.textContent = 'Stage 2: COMPLETE';
+                s3.className = 'stage-complete'; s3.textContent = 'Stage 3: COMPLETE';
+            }
+        }
+
+        // Graphing Engine
+        function drawGraph(points = []) {
+            // Cancel any ongoing drawing animations when redrawing
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 40;
+            const width = canvas.width - padding * 2;
+            const height = canvas.height - padding * 2;
+
+            if (currentStage === 3) {
+                const rangeX = 7;
+                const rangeY = 200;
+                const scaleX = width / rangeX;
+                const scaleY = height / rangeY;
+                const originX = padding;
+                const originY = padding + height;
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#003300';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= rangeX; i += 1) {
+                    let x = originX + i * scaleX;
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, canvas.height - padding);
+                }
+                for (let i = 0; i <= rangeY; i += 20) {
+                    let y = originY - i * scaleY;
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvas.width - padding, y);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#008f11';
+                ctx.lineWidth = 2;
+                ctx.moveTo(originX, padding);
+                ctx.lineTo(originX, canvas.height - padding);
+                ctx.moveTo(padding, originY);
+                ctx.lineTo(canvas.width - padding, originY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#008f11';
+                ctx.font = '12px Consolas';
+                ctx.fillText('0', originX - 15, originY + 15);
+                ctx.fillText('Hour', canvas.width - padding - 20, originY + 20);
+                ctx.fillText('Value', originX - 40, padding + 10);
+
+                for (let i = 1; i <= rangeX; i++) {
+                    ctx.fillText(i, originX + i * scaleX - 5, originY + 15);
+                }
+                for (let i = 20; i <= rangeY; i += 40) {
+                    ctx.fillText(i, originX - 30, originY - i * scaleY + 5);
+                }
+
+                const stage3Points = [
+                    { x: 1, y: 5 }, { x: 2, y: 10 }, { x: 3, y: 20 },
+                    { x: 4, y: 40 }, { x: 5, y: 80 }, { x: 6, y: 160 }
+                ];
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#00ff41';
+                ctx.lineWidth = 2;
+
+                for (let ix = 0; ix <= 100; ix++) {
+                    let rx = 1 + (ix / 100) * 6; // Extended past hour 6
+                    let ry = 5 * Math.pow(2, rx - 1);
+                    let px = originX + rx * scaleX;
+                    let py = originY - ry * scaleY;
+                    if (ix === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                return;
+            }
+
+            // Determine max Y based on rules to scale correctly
+            let maxY = 30;
+            if (currentRule === 'mul2' || currentRule === 'mul2add1') {
+                maxY = 60;
+            } else if (currentRule === 'add') {
+                maxY = 26 + Math.max(0, currentK);
+            }
+            maxY = Math.max(maxY, 30); // At least 30
+
+            // Adjust bounds based on k if sub
+            let minY = 0;
+            if (currentRule === 'sub' && currentK > 0) {
+                minY = -currentK;
+            }
+            minY = Math.min(minY, 0); // At most 0
+
+            const rangeY = maxY - minY;
+            const rangeX = 30; // Fixed X axis 0-30 Since A=1,Z=26
+
+            const scaleX = width / rangeX;
+            const scaleY = height / rangeY;
+
+            const originX = padding;
+            const originY = padding + height + (minY * scaleY); // Move origin up if minY < 0
+
+            // Draw Grid and Axes
+            ctx.beginPath();
+            ctx.strokeStyle = '#003300';
+            ctx.lineWidth = 1;
+
+            // Grid lines
+            for (let i = 0; i <= rangeX; i += 5) {
+                let x = originX + i * scaleX;
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, canvas.height - padding);
+            }
+            for (let i = minY; i <= maxY; i += 10) {
+                let y = originY - i * scaleY;
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+            }
+            ctx.stroke();
+
+            // Axes
+            ctx.beginPath();
+            ctx.strokeStyle = '#008f11';
+            ctx.lineWidth = 2;
+            // Y-axis
+            ctx.moveTo(originX, padding);
+            ctx.lineTo(originX, canvas.height - padding);
+            // X-axis
+            ctx.moveTo(padding, originY);
+            ctx.lineTo(canvas.width - padding, originY);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#008f11';
+            ctx.font = '12px Consolas';
+            ctx.fillText('0', originX - 15, originY + 15);
+            ctx.fillText('X (1-26)', canvas.width - padding - 20, originY + 20);
+            ctx.fillText('Y', originX - 20, padding + 10);
+
+            for (let i = 5; i <= rangeX; i += 5) {
+                ctx.fillText(i, originX + i * scaleX - 5, originY + 15);
+            }
+            for (let i = Math.floor(minY / 10) * 10; i <= maxY; i += 10) {
+                if (i !== 0) ctx.fillText(i, originX - 25, originY - i * scaleY + 5);
+            }
+
+            // Draw Function Line
+            if (currentStage === 1 || (currentStage === 2 && isStage2LineDrawn)) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#00ff41';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+
+                let startX = 0;
+                let startY = applyRule(startX, currentRule, currentK);
+                let endX = 30;
+                let endY = applyRule(endX, currentRule, currentK);
+
+                if (currentStage === 2 && isStage2LineDrawn) {
+                    startY = 2 * startX + 3;
+                    endY = 2 * endX + 3;
+                }
+
+                ctx.moveTo(originX + startX * scaleX, originY - startY * scaleY);
+                ctx.lineTo(originX + endX * scaleX, originY - endY * scaleY);
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset dash
+            }
+
+            // Plot transformed points if any
+            if (points.length > 0) {
+                ctx.fillStyle = '#55ffff'; // Cyan for points
+                points.forEach(p => {
+                    let px = originX + p.x * scaleX;
+                    let py = originY - p.y * scaleY;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Add coordinate labels briefly
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '10px Consolas';
+                    ctx.fillText(`(${p.x},${p.y})`, px + 8, py - 8);
+                    ctx.fillStyle = '#55ffff';
+                });
+            }
+        }
+
+        // Animate points appearing one by one
+        function animatePoints(points) {
+            let currentPoints = [];
+            let i = 0;
+
+            function step() {
+                if (i < points.length) {
+                    currentPoints.push(points[i]);
+                    drawGraph(currentPoints);
+                    i++;
+                    setTimeout(() => {
+                        animationFrameId = requestAnimationFrame(step);
+                    }, 20); // Fast animation ~20ms per point to avoid lag and remain under 300ms total
+                }
+            }
+            step();
+        }
+
+        // Event Listeners
+        ruleSelect.addEventListener('change', (e) => {
+            currentRule = e.target.value;
+            if (currentRule === 'add' || currentRule === 'sub') {
+                kContainer.classList.remove('hidden');
+            } else {
+                kContainer.classList.add('hidden');
+            }
+            drawGraph();
+        });
+
+        kInput.addEventListener('input', (e) => {
+            currentK = parseInt(e.target.value, 10);
+            if (isNaN(currentK)) currentK = 0;
+            drawGraph();
+        });
+
+        btnToggleMode.addEventListener('click', () => {
+            if (currentMode === 'encode') {
+                currentMode = 'decode';
+                modeHeader.textContent = 'SYSTEM MODE: DECODE';
+                modeHeader.className = 'mode-indicator decode-mode';
+                btnToggleMode.textContent = 'Switch to Encode Mode';
+                inputLabel.textContent = 'Enter Encrypted Numbers (Space-separated):';
+                messageInput.placeholder = 'e.g. 15 23 9 12';
+            } else {
+                currentMode = 'encode';
+                modeHeader.textContent = 'SYSTEM MODE: ENCODE';
+                modeHeader.className = 'mode-indicator encode-mode';
+                btnToggleMode.textContent = 'Switch to Decode Mode';
+                inputLabel.textContent = 'Enter Message (Letters A-Z only):';
+                messageInput.placeholder = 'e.g. SECRETMESSAGE';
+            }
+            messageInput.value = '';
+            messageInput.focus();
+        });
+
+        btnReset.addEventListener('click', () => {
+            currentMode = 'encode';
+
+            modeHeader.textContent = 'SYSTEM MODE: ENCODE';
+            modeHeader.className = 'mode-indicator encode-mode';
+            btnToggleMode.textContent = 'Switch to Decode Mode';
+            inputLabel.textContent = 'Enter Message (Letters A-Z only):';
+            messageInput.placeholder = 'e.g. SECRETMESSAGE';
+
+            currentRule = 'add';
+            ruleSelect.value = 'add';
+            currentK = 3;
+            kInput.value = 3;
+            kContainer.classList.remove('hidden');
+
+            currentStage = 1;
+            stage2PlottedPoints = [];
+            isStage2LineDrawn = false;
+            startTimer();
+            if (document.querySelectorAll('.btn-plot')) {
+                document.querySelectorAll('.btn-plot').forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = 'Plot';
+                });
+            }
+            updateMissionUI();
+            const stageAnswerForm = document.getElementById('stage-answer-form');
+            if (stageAnswerForm) stageAnswerForm.classList.add('hidden');
+            const stage2TableContainer = document.getElementById('stage2-table-container');
+            if (stage2TableContainer) stage2TableContainer.classList.add('hidden');
+            const stageAnswerInput = document.getElementById('stage-answer-input');
+            if (stageAnswerInput) stageAnswerInput.value = '';
+
+            messageInput.value = '';
+            clearTerminal();
+            drawGraph();
+            messageInput.focus();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputVal = messageInput.value.trim();
+            if (!inputVal) {
+                printToTerminal('> [ERROR] Input cannot be empty.', 'terminal-err', 0);
+                return;
+            }
+
+            btnSubmit.disabled = true;
+
+            if (currentMode === 'encode') {
+                // ENCODE LOGIC
+                // Filter non-letters
+                const text = inputVal.toUpperCase().replace(/[^A-Z]/g, '');
+                if (!text) {
+                    await printToTerminal(`> COMMAND: ENCODE "${inputVal}"`, 'terminal-in', 0);
+                    await printToTerminal('> [NOTICE] Only A-Z letters are processed. No valid characters found.', 'terminal-err', 0);
+                    btnSubmit.disabled = false;
+                    return;
+                }
+
+                await printToTerminal(`> COMMAND: ENCODE "${text}"`, 'terminal-in', 5);
+
+                let numericRep = [];
+                let transformedRep = [];
+                let pointsForGraph = [];
+
+                for (let i = 0; i < text.length; i++) {
+                    let char = text[i];
+                    let num = charToNum(char);
+                    numericRep.push(num);
+
+                    let newNum = applyRule(num, currentRule, currentK);
+                    transformedRep.push(newNum);
+
+                    pointsForGraph.push({ x: num, y: newNum });
+                }
+
+                await printToTerminal(`  [1] Numeric Base: [${numericRep.join(', ')}]`, 'terminal-sys', 5);
+                const ruleText = ruleSelect.options[ruleSelect.selectedIndex].text.replace('k', currentK);
+                await printToTerminal(`  [2] Applying Rule: ${ruleText}`, 'terminal-sys', 5);
+                await printToTerminal(`  [RESULT]: ${transformedRep.join(' ')}`, 'terminal-out', 5);
+
+                animatePoints(pointsForGraph);
+
+            } else {
+                // DECODE LOGIC
+                await printToTerminal(`> COMMAND: DECODE "${inputVal}"`, 'terminal-in', 5);
+
+                // Expect space separated numbers
+                const parts = inputVal.split(/\s+/);
+                let validFormat = true;
+                let numbers = [];
+
+                for (let p of parts) {
+                    let n = Number(p);
+                    if (isNaN(n) || !Number.isInteger(n)) {
+                        validFormat = false;
+                        break;
+                    }
+                    numbers.push(n);
+                }
+
+                if (!validFormat) {
+                    await printToTerminal('> [ERROR] Invalid format. Expected space-separated integers.', 'terminal-err', 5);
+                    btnSubmit.disabled = false;
+                    return;
+                }
+
+                let originalNums = [];
+                let decodedText = '';
+                let isValidDecode = true;
+                let pointsForGraph = [];
+
+                const ruleText = ruleSelect.options[ruleSelect.selectedIndex].text.replace('k', currentK);
+                await printToTerminal(`  [1] Reverse Rule: Inverse of ${ruleText}`, 'terminal-sys', 5);
+
+                for (let y of numbers) {
+                    let x = applyInverseRule(y, currentRule, currentK);
+                    originalNums.push(x);
+
+                    let char = numToChar(x);
+                    if (char) {
+                        decodedText += char;
+                        pointsForGraph.push({ x: x, y: y });
+                    } else {
+                        isValidDecode = false;
+                    }
+                }
+
+                if (!isValidDecode) {
+                    await printToTerminal(`  [INTERMEDIATE]: [${originalNums.join(', ')}]`, 'terminal-sys', 5);
+                    await printToTerminal('> [ERROR] Invalid key or message. Inverse produced non-integers or numbers outside 1-26.', 'terminal-err', 5);
+                } else {
+                    await printToTerminal(`  [2] Reverted Nums: [${originalNums.join(', ')}]`, 'terminal-sys', 5);
+                    await printToTerminal(`  [RESULT]: ${decodedText}`, 'terminal-out', 5);
+                    animatePoints(pointsForGraph);
+
+                    if (currentStage === 1 && decodedText === 'MATH') {
+                        currentStage = 2;
+                        updateMissionUI();
+                        document.getElementById('stage-answer-form').classList.remove('hidden');
+                        const stage2TableContainer = document.getElementById('stage2-table-container');
+                        if (stage2TableContainer) stage2TableContainer.classList.remove('hidden');
+                        await printToTerminal('TRANSMISSION VERIFIED', 'terminal-sys', 10);
+                        await printToTerminal('LOCK DIGIT #1 = 4', 'terminal-out', 10);
+                        await printStage2Message();
+                        drawGraph();
+                    }
+                }
+            }
+
+            btnSubmit.disabled = false;
+        });
+
+        document.getElementById('stage-answer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const stageAnswerInput = document.getElementById('stage-answer-input');
+            const val = parseInt(stageAnswerInput.value.trim(), 10);
+            if (isNaN(val)) return;
+
+            document.getElementById('btn-stage-submit').disabled = true;
+            await printToTerminal(`> COMMAND: SUBMIT ${val}`, 'terminal-in', 10);
+
+            if (currentStage === 2) {
+                if (val === 10) {
+                    currentStage = 3;
+                    updateMissionUI();
+                    const stage2TableContainer = document.getElementById('stage2-table-container');
+                    if (stage2TableContainer) stage2TableContainer.classList.add('hidden');
+                    await printToTerminal('RULE REVERSED', 'terminal-sys', 10);
+                    await printToTerminal('LOCK DIGIT #2 = 0', 'terminal-out', 10);
+                    stageAnswerInput.value = '';
+                    await printStage3Message();
+                    drawGraph();
+                } else {
+                    await printToTerminal('> [ERROR] Incorrect value. Intrusion detected.', 'terminal-err', 10);
+                }
+            } else if (currentStage === 3) {
+                if (val === 160) {
+                    currentStage = 4;
+                    updateMissionUI();
+                    await printToTerminal('SEQUENCE COMPLETE', 'terminal-sys', 10);
+                    await printToTerminal('LOCK DIGIT #3 = 8', 'terminal-out', 10);
+                    document.getElementById('stage-answer-form').classList.add('hidden');
+                    await printVaultMessage();
+                } else {
+                    await printToTerminal('> [ERROR] Incorrect sequence value. Intrusion detected.', 'terminal-err', 10);
+                }
+            }
+            document.getElementById('btn-stage-submit').disabled = false;
+        });
+
+        const stage2TableContainer = document.getElementById('stage2-table-container');
+        if (stage2TableContainer) {
+            stage2TableContainer.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('btn-plot') && !e.target.disabled) {
+                    e.target.disabled = true;
+                    e.target.textContent = 'Plotted';
+                    const x = parseInt(e.target.getAttribute('data-x'));
+                    const y = parseInt(e.target.getAttribute('data-y'));
+                    stage2PlottedPoints.push({ x, y });
+                    drawGraph(stage2PlottedPoints);
+
+                    if (stage2PlottedPoints.length === 3) {
+                        isStage2LineDrawn = true;
+                        document.getElementById('btn-stage-submit').disabled = true;
+                        await printToTerminal('Calculating graph...', 'terminal-sys', 10);
+                        drawGraph(stage2PlottedPoints);
+
+                        await printToTerminal('RULE CONVERGENCE: y = 2x + 3', 'terminal-sys', 10);
+                        document.getElementById('btn-stage-submit').disabled = false;
+                        terminal.scrollTop = terminal.scrollHeight;
+                    }
+                }
+            });
+        }
+
+        // Initialize App
+        startTimer();
+        clearTerminal();
+        drawGraph();
+
+        /**************************************************************
+         * AUTOMATED SELF-TESTING ENGINE FOR VERIFICATION
+         **************************************************************/
+        function verifyCryptographySystem() {
+            const rules = ['add', 'sub', 'mul2', 'mul2add1'];
+            let passed = 0;
+            const testCount = 20;
+
+            console.log("=== RUNNING CRYPTOGRAPHY VERIFICATION ===");
+
+            for (let i = 0; i < testCount; i++) {
+                // Generate random text of length 3-8
+                let textLen = Math.floor(Math.random() * 6) + 3;
+                let text = '';
+                for (let j = 0; j < textLen; j++) {
+                    text += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                }
+
+                let rule = rules[Math.floor(Math.random() * rules.length)];
+                let k = Math.floor(Math.random() * 20) - 10; // -10 to 10
+
+                // Encode
+                let encryptedNums = [];
+                for (let j = 0; j < text.length; j++) {
+                    let num = charToNum(text[j]);
+                    encryptedNums.push(applyRule(num, rule, k));
+                }
+
+                // Decode
+                let decryptedText = '';
+                let valid = true;
+                for (let j = 0; j < encryptedNums.length; j++) {
+                    let y = encryptedNums[j];
+                    let x = applyInverseRule(y, rule, k);
+                    let char = numToChar(x);
+                    if (char) {
+                        decryptedText += char;
+                    } else {
+                        valid = false;
+                    }
+                }
+
+                if (valid && decryptedText === text) {
+                    passed++;
+                } else {
+                    console.error(`Test Failed: Text=${text}, Rule=${rule}, K=${k}. Result: ${decryptedText}`);
+                }
+            }
+            console.log(`=== VERIFICATION COMPLETE: ${passed}/${testCount} tests passed ===`);
+            if (passed === testCount) {
+                console.log("All internal cryptography tests passed successfully.");
+            }
+        }
+
+        // Run verification transparently on load
+        verifyCryptographySystem();
+
+    </script>
+</body>
+
+</html>
